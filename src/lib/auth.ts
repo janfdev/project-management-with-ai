@@ -1,4 +1,6 @@
-import { authSchema, db } from "@/db";
+
+import { db } from "@/db";
+import * as schema from "@/db/schema";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { nextCookies } from "better-auth/next-js";
@@ -6,15 +8,10 @@ import { nextCookies } from "better-auth/next-js";
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "pg",
-    schema: authSchema,
+    schema: schema,
   }),
   emailAndPassword: {
     enabled: false,
-  },
-  user: {
-    deleteUser: {
-      enabled: true,
-    },
   },
   socialProviders: {
     google: {
@@ -22,8 +19,47 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
     },
   },
-  cookies: {
-    prefix: "ba_", // match this with client
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "employee",
+      },
+      department: {
+         type: "string",
+         required: false,
+      },
+      status: {
+         type: "string",
+         defaultValue: "pending",
+      }
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async (user) => {
+           // Jika emailnya adalah SUPER_ADMIN, jadikan HR & Active
+           if (user.email === process.env.SUPER_ADMIN_EMAIL) {
+              return {
+                 data: {
+                   ...user,
+                   role: "hr",
+                   status: "active"
+                 }
+              }
+           }
+           // Default: Employee & Pending
+           return {
+             data: {
+                ...user,
+                role: "employee",
+                status: "pending"
+             }
+           }
+        }
+      }
+    }
   },
   plugins: [nextCookies()],
 });

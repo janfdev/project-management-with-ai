@@ -8,6 +8,13 @@
       "when": 1756949827036,
       "tag": "0000_amazing_magneto",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1769630187305,
+      "tag": "0001_keen_gauntlet",
+      "breakpoints": true
     }
   ]
 }
