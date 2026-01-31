@@ -20,38 +20,39 @@ export default function FAQsThree() {
   const faqItems: FAQItem[] = [
     {
       id: "item-1",
-      icon: "clock",
-      question: "What are your business hours?",
+      icon: "trophy",
+      question:
+        "Apa perbedaan utama Biznovation dengan Jira, Trello, atau Asana?",
       answer:
-        "Our customer service team is available Monday through Friday from 9:00 AM to 8:00 PM EST, and weekends from 10:00 AM to 6:00 PM EST. During holidays, hours may vary and will be posted on our website.",
+        "Biznovation tidak hanya mencatat status tugas, tetapi menilai kualitas eksekusi kerja melalui bukti nyata dan audit AI, sehingga performa dapat dievaluasi secara objektif.",
     },
     {
       id: "item-2",
       icon: "credit-card",
-      question: "How do subscription payments work?",
+      question: "Apakah AI di Biznovation menggantikan peran manajer?",
       answer:
-        "Subscription payments are automatically charged to your default payment method on the same day each month or year, depending on your billing cycle. You can update your payment information and view billing history in your account dashboard.",
+        "Tidak. AI berfungsi sebagai asisten dan auditor awal, bukan pengambil keputusan. Keputusan akhir tetap di tangan Project Manager atau HR.",
     },
     {
       id: "item-3",
-      icon: "truck",
-      question: "Can I expedite my shipping?",
+      icon: "atom",
+      question: "Apakah sistem ini memantau karyawan secara berlebihan?",
       answer:
-        "Yes, we offer several expedited shipping options at checkout. Next-day and 2-day shipping are available for most U.S. addresses if orders are placed before 2:00 PM EST. International expedited shipping options vary by destination.",
+        "Tidak. Biznovation dirancang untuk mendukung produktivitas, bukan pengawasan. Data yang dikumpulkan hanya terkait eksekusi tugas yang memang relevan dengan pekerjaan.",
     },
     {
       id: "item-4",
       icon: "globe",
-      question: "Do you offer localized support?",
+      question: "Apakah Quality Score AI bersifat final?",
       answer:
-        "We offer multilingual support in English, Spanish, French, German, and Japanese. Our support team can assist customers in these languages via email, chat, and phone during standard business hours for each respective region.",
+        "Tidak. Quality Score adalah indikator awal, bukan nilai akhir. Manajer dapat memvalidasi atau menyesuaikan berdasarkan konteks.",
     },
     {
       id: "item-5",
-      icon: "package",
-      question: "How do I track my order?",
+      icon: "squircle",
+      question: "Bagaimana sistem menangani keterlambatan tugas?",
       answer:
-        "Once your order ships, you'll receive a confirmation email with a tracking number. You can use this number on our website or the carrier's website to track your package. You can also view order status and tracking information in your account dashboard under \"Order History\".",
+        "AI mendeteksi risiko lebih awal dan memberikan rekomendasi. Penyesuaian tetap dilakukan oleh manusia, bukan otomatis oleh sistem.",
     },
   ];
 
