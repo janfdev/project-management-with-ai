@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Calendar as CalendarIcon, ArrowLeft, Clock } from "lucide-react";
+import { Calendar as CalendarIcon, ArrowLeft, Clock, Plus, Pencil } from "lucide-react";
 import Link from "next/link";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
@@ -41,6 +41,7 @@ type ProjectDetails = {
   id: string;
   title: string;
   description: string;
+  status: string;
   startDate: Date;
   dueDate: Date;
   tasks: Task[];
@@ -89,7 +90,20 @@ export default function ProjectDetailsPage() {
     }
   }, [params.id]);
 
-  console.log(project)
+  const handleStatusChange = async (newStatus: string) => {
+    try {
+      const res = await fetch(`/api/projects/${params.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (!res.ok) throw new Error("Failed");
+      setProject((prev) => prev ? { ...prev, status: newStatus } : null);
+      toast.success(`Project status changed to ${newStatus.replace("_", " ")}`);
+    } catch {
+      toast.error("Failed to update status");
+    }
+  };
 
   const handleAssignTask = async (taskId: string, userId: string) => {
     try {
@@ -154,6 +168,25 @@ export default function ProjectDetailsPage() {
             <p className="text-muted-foreground">Project Details & Tasks</p>
           </div>
         </div>
+        <div className="flex items-center gap-2">
+          <Select value={project.status || "active"} onValueChange={handleStatusChange}>
+            <SelectTrigger className="w-[140px] h-9">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="on_hold">On Hold</SelectItem>
+              <SelectItem value="planning">Planning</SelectItem>
+            </SelectContent>
+          </Select>
+          <Link href={`/dashboard/pm/projects/${params.id}/edit`}>
+            <Button variant="outline" size="sm" className="gap-2">
+              <Pencil className="h-4 w-4" />
+              Edit
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid gap-6">
@@ -205,9 +238,17 @@ export default function ProjectDetailsPage() {
 
         {/* Tasks Card */}
         <Card>
-          <CardHeader>
-            <CardTitle>Tasks</CardTitle>
-            <CardDescription>Tasks defined for this project.</CardDescription>
+          <CardHeader className="flex flex-row items-center justify-between">
+            <div>
+              <CardTitle>Tasks</CardTitle>
+              <CardDescription>Tasks defined for this project.</CardDescription>
+            </div>
+            <Link href={`/dashboard/pm/projects/${params.id}/edit`}>
+              <Button variant="outline" size="sm" className="gap-2">
+                <Plus className="h-4 w-4" />
+                Add Task
+              </Button>
+            </Link>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-4">

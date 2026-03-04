@@ -41,7 +41,6 @@ export async function POST(req: Request) {
 
   const now = new Date();
   const dueDate = task.dueDate ? new Date(task.dueDate) : new Date();
-  // Assuming completion is NOW if not set, or use completedDate if available
   const completionDate = task.completedDate
     ? new Date(task.completedDate)
     : now;
@@ -53,7 +52,7 @@ export async function POST(req: Request) {
       )
     : 0;
 
-  // 4. Call AI
+  // 4. Call AI (now returns enriched data)
   const result = await analyzeTaskQuality(
     task.title,
     task.description || "No description",
@@ -62,12 +61,21 @@ export async function POST(req: Request) {
     daysLate,
   );
 
-  // 5. Save to DB
+  // 5. Save to DB (including new enriched fields, reset review status)
   await db
     .update(tasks)
     .set({
       qualityScore: result.score,
       qualityAnalysis: result.analysis,
+      aiConfidenceLevel: result.confidenceLevel,
+      aiStrengths: result.strengths,
+      aiWeaknesses: result.weaknesses,
+      // Reset PM verification when AI re-analyzes
+      reviewDecision: "pending",
+      pmAdjustedScore: null,
+      pmNotes: null,
+      reviewedBy: null,
+      reviewedAt: null,
     })
     .where(eq(tasks.id, taskId));
 

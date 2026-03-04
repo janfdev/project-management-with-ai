@@ -184,13 +184,21 @@ export async function analyzeBatchTasksRisk(
   }
 }
 
+export interface QualityAnalysisResult {
+  score: number;
+  analysis: string;
+  strengths: string[];
+  weaknesses: string[];
+  confidenceLevel: number;
+}
+
 export async function analyzeTaskQuality(
   taskTitle: string,
   taskDescription: string,
   evidenceDescription: string,
   isLate: boolean,
   daysLate: number
-): Promise<{ score: number; analysis: string }> {
+): Promise<QualityAnalysisResult> {
   const prompt = `
     You are a strict QA Manager. Evaluate the quality of this completed task.
 
@@ -204,22 +212,40 @@ export async function analyzeTaskQuality(
     2. Clarity of evidence provided.
     3. Timeliness (Penalize heavily if late).
 
+    Also evaluate:
+    - Key strengths of the work (list up to 3).
+    - Weaknesses or gaps compared to the original instructions (list up to 3).
+    - Your confidence level as a percentage (0-100) representing how confident you are in the accuracy of this assessment based on the evidence quality.
+
     Return JSON ONLY:
     {
       "score": 85,
-      "analysis": "Good work, met all requirements. Evidence is clear. Perfect timing."
+      "analysis": "Summary of overall quality assessment.",
+      "strengths": ["Strength 1", "Strength 2"],
+      "weaknesses": ["Weakness 1", "Weakness 2"],
+      "confidenceLevel": 78
     }
   `;
 
   try {
     const text = await callAI(prompt);
-    return parseJSON(text);
+    const result = parseJSON<QualityAnalysisResult>(text);
+    return {
+      score: result.score ?? 70,
+      analysis: result.analysis ?? "Analysis unavailable.",
+      strengths: Array.isArray(result.strengths) ? result.strengths : [],
+      weaknesses: Array.isArray(result.weaknesses) ? result.weaknesses : [],
+      confidenceLevel: result.confidenceLevel ?? 50,
+    };
   } catch (error) {
     console.error("Quality Analysis Failed", error);
     return {
       score: 70,
       analysis:
         "AI Analysis unavailable currently. Please review manually.",
+      strengths: [],
+      weaknesses: [],
+      confidenceLevel: 0,
     };
   }
 }

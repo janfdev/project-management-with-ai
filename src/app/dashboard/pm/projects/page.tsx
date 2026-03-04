@@ -11,7 +11,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, MoreHorizontal, ArrowRight } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Plus, Calendar, MoreHorizontal, ArrowRight, Search, Filter } from "lucide-react";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -26,6 +34,8 @@ import { Projects } from "@/lib/types/type";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Projects[]>([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   const fetchProjects = async () => {
     const response = await fetch("/api/projects");
@@ -69,8 +79,42 @@ export default function ProjectsPage() {
         </Link>
       </div>
 
+      <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-card p-4 rounded-lg border shadow-sm">
+        <div className="relative w-full sm:w-96">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search projects..."
+            className="pl-8"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Filter className="h-4 w-4 text-muted-foreground" />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="active">Active</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="on_hold">On Hold</SelectItem>
+              <SelectItem value="planning">Planning</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {projects.map((project) => (
+        {projects
+          .filter((project) => {
+            const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                  (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase()));
+            const matchesStatus = statusFilter === "all" || project.status === statusFilter;
+            return matchesSearch && matchesStatus;
+          })
+          .map((project) => (
           <Card
             key={project.id}
             className="flex flex-col h-full hover:shadow-md transition-shadow"
@@ -174,6 +218,16 @@ export default function ProjectsPage() {
             </CardFooter>
           </Card>
         ))}
+        {projects.length > 0 && projects.filter((project) => {
+            const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                                  (project.description && project.description.toLowerCase().includes(searchQuery.toLowerCase()));
+            const matchesStatus = statusFilter === "all" || project.status === statusFilter;
+            return matchesSearch && matchesStatus;
+          }).length === 0 && (
+            <div className="col-span-full py-12 text-center text-muted-foreground border-2 border-dashed rounded-lg">
+              No projects found matching your filters.
+            </div>
+          )}
       </div>
     </div>
   );

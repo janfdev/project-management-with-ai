@@ -36,6 +36,12 @@ export const riskLevelEnum = pgEnum("risk_level", [
   "high",
   "critical",
 ]);
+export const reviewDecisionEnum = pgEnum("review_decision", [
+  "pending",
+  "approved",
+  "adjusted",
+  "rejected",
+]);
 
 // Auth Tables (Better Auth)
 export const user = pgTable("user", {
@@ -132,6 +138,16 @@ export const tasks = pgTable("tasks", {
   // AI Quality & Analytics
   qualityScore: integer("quality_score"), // 0-100 score from AI
   qualityAnalysis: text("quality_analysis"), // Detailed feedback from AI regarding the quality work
+  aiConfidenceLevel: integer("ai_confidence_level"), // 0-100 AI confidence
+  aiStrengths: jsonb("ai_strengths"), // JSON array of strings
+  aiWeaknesses: jsonb("ai_weaknesses"), // JSON array of strings
+
+  // PM Verification
+  reviewDecision: reviewDecisionEnum("review_decision").default("pending"),
+  pmAdjustedScore: integer("pm_adjusted_score"), // PM-adjusted score if different
+  pmNotes: text("pm_notes"), // PM written reason for adjustment/rejection
+  reviewedBy: text("reviewed_by").references(() => user.id),
+  reviewedAt: timestamp("reviewed_at"),
 
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -165,6 +181,19 @@ export const activityLogs = pgTable("activity_logs", {
   entityId: text("entity_id"), // ID dari task/project
   entityType: text("entity_type"), // 'task', 'project'
   details: jsonb("details"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const qualityVerificationLogs = pgTable("quality_verification_logs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  taskId: uuid("task_id").references(() => tasks.id, { onDelete: "cascade" }),
+  reviewerId: text("reviewer_id").references(() => user.id),
+  decision: reviewDecisionEnum("decision").notNull(),
+  aiScore: integer("ai_score"), // Original AI score at time of review
+  pmScore: integer("pm_score"), // PM-adjusted score (if adjusted)
+  reason: text("reason"), // Written justification
+  aiConfidence: integer("ai_confidence"), // AI confidence at time of review
+  metadata: jsonb("metadata"), // Extra context data
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -238,6 +267,12 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
   }),
   subtasks: many(subtasks),
   evidences: many(taskEvidences),
+  verificationLogs: many(qualityVerificationLogs),
+  reviewer: one(user, {
+    fields: [tasks.reviewedBy],
+    references: [user.id],
+    relationName: "taskReviewer",
+  }),
 }));
 
 export const usersRelations = relations(user, ({ many }) => ({
@@ -257,5 +292,16 @@ export const taskEvidencesRelations = relations(taskEvidences, ({ one }) => ({
   task: one(tasks, {
     fields: [taskEvidences.taskId],
     references: [tasks.id],
+  }),
+}));
+
+export const qualityVerificationLogsRelations = relations(qualityVerificationLogs, ({ one }) => ({
+  task: one(tasks, {
+    fields: [qualityVerificationLogs.taskId],
+    references: [tasks.id],
+  }),
+  reviewer: one(user, {
+    fields: [qualityVerificationLogs.reviewerId],
+    references: [user.id],
   }),
 }));

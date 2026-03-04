@@ -8,8 +8,6 @@ import { eq, desc } from "drizzle-orm";
 export async function GET(req: Request) {
   const session = await auth.api.getSession({ headers: await headers() });
 
-  // Check if session exists (though middleware might handle this, double check)
-  // PM Role check ideally here too
   if (!session) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -37,6 +35,9 @@ export async function GET(req: Request) {
       status: t.status,
       riskLevel: t.riskLevel || "Low",
       aiAnalysis: t.qualityAnalysis || "No analysis generated yet.",
+      aiConfidenceLevel: t.aiConfidenceLevel || 0,
+      reviewDecision: t.reviewDecision || "pending",
+      pmAdjustedScore: t.pmAdjustedScore,
     }));
 
     return NextResponse.json(formattedTasks);

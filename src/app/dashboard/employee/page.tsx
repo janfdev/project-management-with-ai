@@ -1,6 +1,6 @@
 "use client";
 
-import { EmployeeKanban } from "@/components/dashboard/employee-kanban";
+// import { EmployeeKanban } from "@/components/dashboard/employee-kanban";
 import { SectionCards } from "@/components/section-cards-employee";
 import { ChartAreaInteractive } from "@/components/dashboard/chart-area-interactive";
 import { UpcomingDeadlines } from "@/components/upcoming-deadlines";
@@ -55,16 +55,15 @@ export default function EmployeeDashboardPage() {
         </div>
 
         {/* Kanban Board Section */}
-        <div className="flex-1">
+        {/* <div className="flex-1">
           <div className="mb-4">
             <h2 className="text-2xl font-bold tracking-tight">My Tasks</h2>
             <p className="text-muted-foreground">
               Manage your assigned tasks and submit evidence.
             </p>
           </div>
-          {/* Kanban - Already integrated with /api/tasks */}
           <EmployeeKanban key={`kanban-${refreshKey}`} />
-        </div>
+        </div> */}
       </div>
     </div>
   );

@@ -50,6 +50,7 @@ type Task = {
   projectId?: string;
   qualityScore?: number;
   qualityAnalysis?: string;
+  reviewDecision?: string;
 };
 
 const COLUMNS = [
@@ -128,8 +129,15 @@ function KanbanContent({
       
       // If status is changing
       if (activeStatusNormal !== newStatus) {
-        // INTERCEPT LOGIC: If moving TO Review or Done
-        if (newStatus === "Review" || newStatus === "Done") {
+        // Enforce employees passing through Review
+        if (newStatus === "Done") {
+          toast.info("Tasks must be sent to 'In Review' for PM verification first.");
+          newStatus = "Review";
+          if (activeStatusNormal === "Review") return;
+        }
+
+        // INTERCEPT LOGIC: If moving TO Review
+        if (newStatus === "Review") {
            setMoveRequest({
              taskId: activeTask.id,
              targetStatus: newStatus,
@@ -172,8 +180,8 @@ function KanbanContent({
 
   const handleConfirmMove = async () => {
     if (!moveRequest) return;
-    if (!evidenceDescription) {
-      toast.error("Please provide a description.");
+    if (!evidenceDescription || !evidenceFile) {
+      toast.error("Both a description and an evidence file are required.");
       return;
     }
 
@@ -268,7 +276,12 @@ function KanbanContent({
                     </div>
 
                     <KanbanBoardCardDescription className="text-white">
-                      {task.type}
+                      <div className="flex items-center gap-2">
+                        <span>{task.type}</span>
+                        {task.reviewDecision === "rejected" && (
+                          <Badge variant="destructive" className="h-4 text-[10px] px-1">Rejected, Revision Needed</Badge>
+                        )}
+                      </div>
                     </KanbanBoardCardDescription>
 
                     <div className="flex items-center justify-between mt-2">
@@ -299,7 +312,7 @@ function KanbanContent({
       >
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Please provide a description and evidence (optional but recommended) to move this task to <strong>{moveRequest?.targetStatus}</strong>.
+            Please provide a description and upload an evidence file (Required) to move this task to <strong>{moveRequest?.targetStatus}</strong>.
           </p>
           <div className="space-y-2">
             <label className="text-sm font-medium">Description</label>
@@ -363,6 +376,7 @@ export function EmployeeKanban() {
             description: t.description,
             qualityScore: t.qualityScore,
             qualityAnalysis: t.qualityAnalysis,
+            reviewDecision: t.reviewDecision,
           }));
           setTasks(mappedTasks);
         }
@@ -392,6 +406,7 @@ export function EmployeeKanban() {
           status: mapDbStatusToKanban(detail.status),
           qualityScore: detail.qualityScore,
           qualityAnalysis: detail.qualityAnalysis,
+          reviewDecision: detail.reviewDecision,
         }));
       }
     } catch (error) {
@@ -491,7 +506,18 @@ export function EmployeeKanban() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="outline">{task.status}</Badge>
+                        <div className="flex flex-col gap-1 items-start">
+                          <Badge variant="outline">{task.status}</Badge>
+                          {task.reviewDecision === "rejected" && (
+                            <Badge variant="destructive" className="h-4 text-[10px] px-1">Revision Needed</Badge>
+                          )}
+                          {task.reviewDecision === "adjusted" && (
+                            <Badge className="bg-blue-100 text-blue-700 h-4 text-[10px] px-1">Adjusted</Badge>
+                          )}
+                          {task.reviewDecision === "approved" && (
+                            <Badge className="bg-green-100 text-green-700 h-4 text-[10px] px-1">Verified</Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>{task.dueDate}</TableCell>
                       <TableCell>
@@ -588,7 +614,7 @@ export function EmployeeKanban() {
                   />
                 </div>
                 <p className="text-xs text-muted-foreground mb-4">
-                  Upload verification files (Screenshots, PDFs, or Documents) to
+                  Upload verification files (Required: Screenshots, PDFs, or Documents) to
                   prove task completion.
                 </p>
                 <FileUpload

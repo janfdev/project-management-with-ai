@@ -62,6 +62,11 @@ export const dashboardConfig = {
       icon: IconChartBar,
     },
     {
+      title: "Performance",
+      url: "/dashboard/hr/performance",
+      icon: IconActivity,
+    },
+    {
       title: "Manage Users",
       url: "/dashboard/hr/users-management",
       icon: IconUsers,
